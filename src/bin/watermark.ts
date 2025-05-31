@@ -13,7 +13,7 @@ import type { WatermarkConfig, CLIOptions, WatermarkOptions } from '../types';
 program
   .name('watermark')
   .description('为目录下的所有照片添加时间水印')
-  .version('1.0.1');
+  .version('1.0.2');
 
 program
   .command('add')
@@ -60,10 +60,14 @@ program
       // 确认处理选项，使用保存的配置作为默认值
       const config = await inquirer.prompt([
         {
-          type: 'input',
-          name: 'outputDir',
-          message: '输出目录（留空则覆盖原文件）:',
-          default: options.output || ''
+          type: 'list',
+          name: 'outputMode',
+          message: '选择输出方式:',
+          choices: [
+            { name: '在原目录下创建 "watermarked" 文件夹（推荐）', value: 'subfolder' },
+            { name: '覆盖原文件（请先备份！）', value: 'overwrite' }
+          ],
+          default: 'subfolder'
         },
         {
           type: 'input',
@@ -166,9 +170,18 @@ program
         console.log(chalk.green('✅ 配置已保存'));
       }
 
+      // 根据用户选择确定输出目录
+      let outputDir: string | undefined;
+      if (config.outputMode === 'subfolder') {
+        outputDir = resolve(targetDir, 'watermarked');
+      } else if (options.output) {
+        // 如果通过命令行参数指定了输出目录，仍然支持
+        outputDir = resolve(options.output);
+      }
+
       const watermarkOptions: WatermarkOptions = {
         inputDir: resolve(targetDir),
-        outputDir: config.outputDir ? resolve(config.outputDir) : undefined,
+        outputDir: outputDir,
         config: {
           timeFormat: config.timeFormat,
           position: config.position,
@@ -177,7 +190,7 @@ program
           addShadow: config.addShadow,
           quality: config.quality
         },
-        overwrite: options.overwrite || false
+        overwrite: options.overwrite || config.outputMode === 'overwrite'
       };
 
       console.log(chalk.blue('开始处理照片...'));

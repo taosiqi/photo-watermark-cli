@@ -55,7 +55,7 @@ photo-watermark add
 # 基本用法 - 为指定目录下的照片添加水印
 photo-watermark add -d /path/to/your/photos
 
-# 指定输出目录（不覆盖原文件）
+# 指定自定义输出目录（高级用法）
 photo-watermark add -d /path/to/photos -o /path/to/output
 
 # 自定义时间格式
@@ -67,6 +67,20 @@ photo-watermark add -d ./photos -i
 # 列出目录下所有支持的图片文件
 photo-watermark list /path/to/photos
 ```
+
+### 输出方式说明
+
+默认情况下，交互式模式会提供两种输出方式选择：
+
+1. **推荐方式**：在原目录下创建 `watermarked` 文件夹
+
+   - 🛡️ 安全，不会覆盖原文件
+   - 📁 自动保持原有目录结构
+   - 🔍 便于对比处理前后的效果
+
+2. **覆盖方式**：直接覆盖原文件
+   - 💾 节省存储空间
+   - ⚠️ 需要提前备份重要照片
 
 ### 3. 配置管理
 
@@ -133,7 +147,10 @@ photo-watermark config --path
 ### 场景 1：旅行照片整理
 
 ```bash
-# 为旅行照片添加拍摄时间，输出到新目录
+# 交互式模式：选择在原目录下创建 "watermarked" 文件夹
+photo-watermark add -d ~/Pictures/旅行2024
+
+# 或者指定自定义输出目录
 photo-watermark add -d ~/Pictures/旅行2024 -o ~/Pictures/旅行2024_带水印
 ```
 
@@ -143,14 +160,14 @@ photo-watermark add -d ~/Pictures/旅行2024 -o ~/Pictures/旅行2024_带水印
 # 预览效果（不修改文件）
 photo-watermark add -d ./event_photos --dry-run
 
-# 确认无误后执行
+# 确认无误后执行（会在当前目录创建 watermarked 文件夹）
 photo-watermark add -d ./event_photos -f "YYYY年MM月DD日 HH:mm"
 ```
 
 ### 场景 3：照片存档
 
 ```bash
-# 直接在原图上添加水印（请先备份！）
+# 交互式模式选择覆盖原文件（请先备份！）
 photo-watermark add -d ./archive_photos
 ```
 
