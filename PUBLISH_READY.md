@@ -7,7 +7,7 @@
 - ✅ 核心功能实现 (watermark.js, scanner.js, config.js)
 - ✅ CLI 入口 (bin/watermark.js)
 - ✅ 包管理配置 (package.json)
-- ✅ 文档完整 (README.md, USAGE.md)
+- ✅ 文档完整 (README.md, EXAMPLES.md)
 - ✅ Git 忽略文件 (.gitignore, .npmignore)
 - ✅ 测试文件 (test.js)
 
