@@ -61,29 +61,11 @@ photo-watermark add -d /path/to/photos -o /path/to/output
 # 自定义时间格式
 photo-watermark add -d /path/to/photos -f "YYYY年MM月DD日 HH:mm"
 
-# 预览模式（查看效果但不修改文件）
-photo-watermark add -d /path/to/photos --dry-run
-
 # 启用交互式模式
 photo-watermark add -d ./photos -i
 
 # 列出目录下所有支持的图片文件
 photo-watermark list /path/to/photos
-```
-
-### 开发模式命令
-
-如果你正在本地开发或测试，可以使用以下命令：
-
-```bash
-# 使用 npm script（推荐）
-npm start
-
-# 直接运行 TypeScript 文件
-npm run dev
-
-# 或者运行编译后的 JavaScript
-node dist/bin/watermark.js add --help
 ```
 
 ### 3. 配置管理
@@ -112,7 +94,6 @@ photo-watermark config --path
 - `YYYY年MM月DD日`: 2024 年 12 月 01 日
 - `MM/DD/YYYY HH:mm`: 12/01/2024 14:30
 - `DD.MM.YYYY`: 01.12.2024
-- `HH:mm DD/MM/YY`: 14:30 01/12/24
 
 ### 水印位置
 
@@ -123,7 +104,7 @@ photo-watermark config --path
 
 ### 样式选项
 
-- **字体大小**: 12-50 像素，智能相对缩放
+- **字体大小**: 12-48 像素，智能相对缩放
 - **字体颜色**: 白色、黑色、红色、蓝色、绿色、黄色
 - **文字阴影**: 增强复杂背景下的可读性
 - **图片质量**: 1-100，控制输出文件质量
@@ -246,7 +227,7 @@ npm run test
 
 ### 项目结构
 
-```text
+```
 ├── src/
 │   ├── types.ts          # TypeScript 类型定义
 │   ├── bin/
@@ -266,13 +247,11 @@ npm run test
 
 ### 开发流程
 
-```bash
 1. Fork 项目
-2. 创建功能分支：git checkout -b feature/amazing-feature
-3. 提交更改：git commit -m 'Add amazing feature'
-4. 推送分支：git push origin feature/amazing-feature
+2. 创建功能分支：`git checkout -b feature/amazing-feature`
+3. 提交更改：`git commit -m 'Add amazing feature'`
+4. 推送分支：`git push origin feature/amazing-feature`
 5. 提交 Pull Request
-```
 
 ## 📝 许可证
 
