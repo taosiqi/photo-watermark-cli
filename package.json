@@ -1,30 +1,34 @@
 {
     "name": "photo-watermark-cli",
-    "version": "1.0.0",
-    "description": "A Node.js CLI tool to add timestamp watermarks to photos with intelligent size scaling",
-    "main": "lib/watermark.js",
+    "version": "2.0.0",
+    "description": "A modern TypeScript CLI tool to add timestamp watermarks to photos with intelligent size scaling",
+    "main": "dist/lib/watermark.js",
+    "types": "dist/lib/watermark.d.ts",
     "bin": {
-        "photo-watermark": "./bin/watermark.js",
-        "watermark": "./bin/watermark.js"
+        "photo-watermark": "./dist/bin/watermark.js",
+        "watermark": "./dist/bin/watermark.js"
     },
     "engines": {
-        "node": ">=14.0.0",
-        "npm": ">=6.0.0"
+        "node": ">=18.0.0",
+        "npm": ">=8.0.0"
     },
     "files": [
-        "bin/",
-        "lib/",
+        "dist/",
         "README.md",
         "USAGE.md",
         "EXAMPLES.md"
     ],
     "scripts": {
-        "start": "node bin/watermark.js add",
-        "test": "node test.js",
-        "demo": "node bin/watermark.js add",
-        "config": "node bin/watermark.js config",
-        "help": "node bin/watermark.js --help",
-        "version": "node bin/watermark.js --version"
+        "build": "tsc",
+        "dev": "tsx src/bin/watermark.ts add",
+        "start": "npm run build && node dist/bin/watermark.js add",
+        "test": "npm run build && node dist/test.js",
+        "demo": "npm run build && node dist/bin/watermark.js add",
+        "config": "npm run build && node dist/bin/watermark.js config",
+        "help": "npm run build && node dist/bin/watermark.js --help",
+        "version": "npm run build && node dist/bin/watermark.js --version",
+        "prepare": "npm run build",
+        "clean": "rm -rf dist"
     },
     "keywords": [
         "watermark",
@@ -53,15 +57,21 @@
         "url": "https://github.com/taosiqi/photo-watermark-cli/issues"
     },
     "dependencies": {
-        "commander": "^11.0.0",
+        "commander": "^12.1.0",
         "inquirer": "^8.2.6",
-        "sharp": "^0.32.0",
+        "sharp": "^0.33.5",
         "exif-reader": "^2.0.1",
-        "glob": "^10.0.0",
-        "chalk": "^4.1.2",
-        "ora": "^5.4.1"
+        "glob": "^11.0.0",
+        "chalk": "^5.3.0",
+        "ora": "^8.1.0",
+        "moment": "^2.30.1"
     },
-    "devDependencies": {},
+    "devDependencies": {
+        "typescript": "^5.6.3",
+        "@types/node": "^22.8.7",
+        "@types/inquirer": "^8.2.10",
+        "tsx": "^4.19.2"
+    },
     "peerDependencies": {},
     "os": [
         "darwin",

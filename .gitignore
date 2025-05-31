@@ -123,6 +123,11 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+*.tsbuildinfo
+
+# TypeScript
+*.d.ts.map
+*.js.map
 
 # Documentation build
 docs/build/
