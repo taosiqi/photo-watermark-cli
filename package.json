@@ -1,6 +1,6 @@
 {
     "name": "photo-watermark-cli",
-    "version": "2.0.0",
+    "version": "1.0.0",
     "description": "A modern TypeScript CLI tool to add timestamp watermarks to photos with intelligent size scaling",
     "main": "dist/lib/watermark.js",
     "types": "dist/lib/watermark.d.ts",
