@@ -35,31 +35,58 @@ photo-watermark add
 photo-watermark add -d /path/to/photos -o /path/to/output
 ```
 
-## 📋 命令指南
+## 📋 完整使用指南
 
-### 添加水印
+### 1. 交互式模式（推荐新手使用）
 
 ```bash
-# 交互式选择所有选项
-photo-watermark add
+# 启动交互式界面
+npm start
 
-# 指定目录和输出
-photo-watermark add -d ./photos -o ./watermarked
+# 或者直接运行
+photo-watermark add
+```
+
+这将启动交互式界面，逐步引导你完成配置。
+
+### 2. 命令行模式（推荐高级用户）
+
+```bash
+# 基本用法 - 为指定目录下的照片添加水印
+photo-watermark add -d /path/to/your/photos
+
+# 指定输出目录（不覆盖原文件）
+photo-watermark add -d /path/to/photos -o /path/to/output
 
 # 自定义时间格式
-photo-watermark add -d ./photos -f "YYYY年MM月DD日 HH:mm"
+photo-watermark add -d /path/to/photos -f "YYYY年MM月DD日 HH:mm"
+
+# 预览模式（查看效果但不修改文件）
+photo-watermark add -d /path/to/photos --dry-run
 
 # 启用交互式模式
 photo-watermark add -d ./photos -i
+
+# 列出目录下所有支持的图片文件
+photo-watermark list /path/to/photos
 ```
 
-### 列出支持的文件
+### 开发模式命令
+
+如果你正在本地开发或测试，可以使用以下命令：
 
 ```bash
-photo-watermark list ./photos
+# 使用 npm script（推荐）
+npm start
+
+# 直接运行 TypeScript 文件
+npm run dev
+
+# 或者运行编译后的 JavaScript
+node dist/bin/watermark.js add --help
 ```
 
-### 配置管理
+### 3. 配置管理
 
 ```bash
 # 显示当前配置
@@ -74,12 +101,18 @@ photo-watermark config --path
 
 ## 🎨 配置选项
 
+### 时间来源
+
+1. **EXIF 信息**：优先使用照片的拍摄时间（DateTimeOriginal、DateTime、DateTimeDigitized）
+2. **文件时间**：如果没有 EXIF 信息，使用文件的修改时间
+
 ### 时间格式
 
 - `YYYY-MM-DD HH:mm:ss` (默认): 2024-12-01 14:30:25
 - `YYYY年MM月DD日`: 2024 年 12 月 01 日
 - `MM/DD/YYYY HH:mm`: 12/01/2024 14:30
 - `DD.MM.YYYY`: 01.12.2024
+- `HH:mm DD/MM/YY`: 14:30 01/12/24
 
 ### 水印位置
 
@@ -90,7 +123,7 @@ photo-watermark config --path
 
 ### 样式选项
 
-- **字体大小**: 12-48 像素，智能相对缩放
+- **字体大小**: 12-50 像素，智能相对缩放
 - **字体颜色**: 白色、黑色、红色、蓝色、绿色、黄色
 - **文字阴影**: 增强复杂背景下的可读性
 - **图片质量**: 1-100，控制输出文件质量
@@ -114,7 +147,76 @@ photo-watermark config --path
 - **WebP** (.webp) - 现代网络优化格式
 - **BMP** (.bmp) - Windows 位图格式
 
-## 🛠️ 开发
+## 💡 使用场景示例
+
+### 场景 1：旅行照片整理
+
+```bash
+# 为旅行照片添加拍摄时间，输出到新目录
+photo-watermark add -d ~/Pictures/旅行2024 -o ~/Pictures/旅行2024_带水印
+```
+
+### 场景 2：活动照片批处理
+
+```bash
+# 预览效果（不修改文件）
+photo-watermark add -d ./event_photos --dry-run
+
+# 确认无误后执行
+photo-watermark add -d ./event_photos -f "YYYY年MM月DD日 HH:mm"
+```
+
+### 场景 3：照片存档
+
+```bash
+# 直接在原图上添加水印（请先备份！）
+photo-watermark add -d ./archive_photos
+```
+
+## ⚠️ 注意事项
+
+1. **备份重要照片**：建议在处理重要照片前先做备份
+2. **预览功能**：使用 `--dry-run` 选项可以预览效果而不修改文件
+3. **输出目录**：如果指定输出目录，会保持原有的目录结构
+4. **性能**：使用 Sharp 库，处理速度较快，但大量高分辨率照片可能需要一些时间
+5. **权限**：确保对目标目录有读写权限
+
+## 🔧 故障排除
+
+### 常见问题
+
+1. **"目录不存在"错误**
+
+   - 检查路径是否正确
+   - 使用绝对路径或相对于当前目录的正确路径
+
+2. **"权限被拒绝"错误**
+
+   - 检查目录和文件的读写权限
+   - 在 macOS/Linux 上可能需要使用 `sudo`
+
+3. **"未找到图片文件"**
+
+   - 确认目录下有支持的图片格式
+   - 使用 `list` 命令检查可识别的文件
+
+4. **处理缓慢**
+   - 大文件和高分辨率图片需要更多处理时间
+   - 可以先用小批量测试
+
+### 获取帮助
+
+```bash
+# 查看整体帮助
+photo-watermark --help
+
+# 查看特定命令帮助
+photo-watermark add --help
+photo-watermark list --help
+photo-watermark config --help
+```
+
+## 🛠️ 开发指南
 
 ### 环境要求
 
@@ -139,12 +241,12 @@ npm run dev
 npm run build
 
 # 运行测试
-npm test
+npm run test
 ```
 
 ### 项目结构
 
-```
+```text
 ├── src/
 │   ├── types.ts          # TypeScript 类型定义
 │   ├── bin/
@@ -162,6 +264,16 @@ npm test
 
 欢迎贡献代码！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详细指南。
 
+### 开发流程
+
+```bash
+1. Fork 项目
+2. 创建功能分支：git checkout -b feature/amazing-feature
+3. 提交更改：git commit -m 'Add amazing feature'
+4. 推送分支：git push origin feature/amazing-feature
+5. 提交 Pull Request
+```
+
 ## 📝 许可证
 
 MIT License - 查看 [LICENSE](LICENSE) 文件了解详情。
@@ -171,6 +283,15 @@ MIT License - 查看 [LICENSE](LICENSE) 文件了解详情。
 - [npm 包](https://www.npmjs.com/package/photo-watermark-cli)
 - [GitHub 仓库](https://github.com/taosiqi/photo-watermark-cli)
 - [问题反馈](https://github.com/taosiqi/photo-watermark-cli/issues)
+- [更多使用示例](EXAMPLES.md)
+
+## 📊 项目统计
+
+- 🎯 智能相对大小算法确保水印视觉一致性
+- 📦 包大小：~19KB（压缩后）
+- ⚡ 支持所有主流图片格式
+- 🔧 完全类型安全的 TypeScript 实现
+- 🌟 现代化的 CLI 交互体验
 
 ---
 

@@ -15,7 +15,6 @@
     "files": [
         "dist/",
         "README.md",
-        "USAGE.md",
         "EXAMPLES.md"
     ],
     "scripts": {
