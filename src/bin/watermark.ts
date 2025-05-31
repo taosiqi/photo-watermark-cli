@@ -13,7 +13,7 @@ import type { WatermarkConfig, CLIOptions, WatermarkOptions } from '../types';
 program
   .name('watermark')
   .description('为目录下的所有照片添加时间水印')
-  .version('1.0.0');
+  .version('1.0.1');
 
 program
   .command('add')
