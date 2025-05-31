@@ -1,0 +1,80 @@
+{
+    "name": "photo-watermark-cli",
+    "version": "1.0.0",
+    "description": "A Node.js CLI tool to add timestamp watermarks to photos with intelligent size scaling",
+    "main": "lib/watermark.js",
+    "bin": {
+        "photo-watermark": "./bin/watermark.js",
+        "watermark": "./bin/watermark.js"
+    },
+    "engines": {
+        "node": ">=14.0.0",
+        "npm": ">=6.0.0"
+    },
+    "files": [
+        "bin/",
+        "lib/",
+        "README.md",
+        "USAGE.md",
+        "EXAMPLES.md"
+    ],
+    "scripts": {
+        "start": "node bin/watermark.js add",
+        "test": "node test.js",
+        "demo": "node bin/watermark.js add",
+        "config": "node bin/watermark.js config",
+        "help": "node bin/watermark.js --help",
+        "version": "node bin/watermark.js --version"
+    },
+    "keywords": [
+        "watermark",
+        "photo",
+        "image",
+        "timestamp",
+        "cli",
+        "exif",
+        "batch-processing",
+        "photography",
+        "metadata",
+        "sharp",
+        "nodejs"
+    ],
+    "author": {
+        "name": "Tao Siqi",
+        "email": "taosiqi@outlook.com"
+    },
+    "license": "MIT",
+    "homepage": "https://github.com/taosiqi/photo-watermark-cli#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/taosiqi/photo-watermark-cli.git"
+    },
+    "bugs": {
+        "url": "https://github.com/taosiqi/photo-watermark-cli/issues"
+    },
+    "dependencies": {
+        "commander": "^11.0.0",
+        "inquirer": "^8.2.6",
+        "sharp": "^0.32.0",
+        "exif-reader": "^2.0.1",
+        "glob": "^10.0.0",
+        "chalk": "^4.1.2",
+        "ora": "^5.4.1"
+    },
+    "devDependencies": {},
+    "peerDependencies": {},
+    "os": [
+        "darwin",
+        "linux",
+        "win32"
+    ],
+    "cpu": [
+        "x64",
+        "arm64"
+    ],
+    "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/taosiqi"
+    },
+    "preferGlobal": true
+}
