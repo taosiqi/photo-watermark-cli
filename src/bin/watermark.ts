@@ -11,6 +11,35 @@ import { loadConfig, saveConfig, resetConfig, getConfigPath } from '../lib/confi
 import { scanPhotos } from '../lib/scanner';
 import chalk from 'chalk';
 import type { WatermarkConfig, CLIOptions, WatermarkOptions } from '../types';
+import { readFileSync } from 'fs';
+
+// 读取 package.json 版本号
+function getPackageVersion(): string {
+  try {
+    // 尝试多个可能的路径
+    const possiblePaths = [
+      join(__dirname, '../../package.json'),  // 从 dist/bin 到根目录
+      join(__dirname, '../../../package.json'), // 如果有额外的嵌套
+      join(process.cwd(), 'package.json')     // 当前工作目录
+    ];
+    
+    for (const packagePath of possiblePaths) {
+      try {
+        const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+        if (packageJson.version) {
+          return packageJson.version;
+        }
+      } catch {
+        // 继续尝试下一个路径
+        continue;
+      }
+    }
+    
+    return '1.0.0'; // 默认版本号
+  } catch (error) {
+    return '1.0.0'; // 默认版本号
+  }
+}
 
 // 文件夹选择器函数
 async function selectDirectory(initialPath?: string): Promise<string> {
@@ -107,7 +136,7 @@ async function selectDirectory(initialPath?: string): Promise<string> {
 program
   .name('watermark')
   .description('为目录下的所有照片添加时间水印')
-  .version('1.0.3');
+  .version(getPackageVersion());
 
 program
   .command('add')
