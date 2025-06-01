@@ -3,12 +3,106 @@
 import { program } from 'commander';
 import inquirer from 'inquirer';
 import { resolve, relative } from 'path';
-import { existsSync, statSync } from 'fs';
+import { existsSync, statSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { homedir } from 'os';
 import { processDirectory } from '../lib/watermark';
 import { loadConfig, saveConfig, resetConfig, getConfigPath } from '../lib/config';
 import { scanPhotos } from '../lib/scanner';
 import chalk from 'chalk';
 import type { WatermarkConfig, CLIOptions, WatermarkOptions } from '../types';
+
+// 文件夹选择器函数
+async function selectDirectory(initialPath?: string): Promise<string> {
+  let currentPath = initialPath || process.cwd();
+
+  while (true) {
+    console.clear();
+    console.log(chalk.blue('📁 文件夹选择器'));
+    console.log(chalk.gray('当前位置:'), chalk.cyan(currentPath));
+    console.log(chalk.gray('使用方向键选择，Enter确认\n'));
+
+    const items = [];
+
+    try {
+      // 添加返回上级目录选项（除非已经在根目录）
+      const parentPath = dirname(currentPath);
+      if (parentPath !== currentPath) {
+        items.push({
+          name: '📁 .. (返回上级目录)',
+          value: { path: parentPath, isDirectory: true }
+        });
+      }
+
+      // 添加快捷目录选项
+      if (currentPath !== homedir()) {
+        items.push({
+          name: '🏠 用户主目录',
+          value: { path: homedir(), isDirectory: true }
+        });
+      }
+
+      if (currentPath !== process.cwd()) {
+        items.push({
+          name: '📂 当前工作目录',
+          value: { path: process.cwd(), isDirectory: true }
+        });
+      }
+
+      // 添加当前目录下的所有文件夹
+      const entries = readdirSync(currentPath);
+      const directories = entries
+        .filter(entry => {
+          try {
+            const fullPath = join(currentPath, entry);
+            return statSync(fullPath).isDirectory() && !entry.startsWith('.');
+          } catch {
+            return false;
+          }
+        })
+        .sort()
+        .map(entry => ({
+          name: `📁 ${entry}`,
+          value: { path: join(currentPath, entry), isDirectory: true }
+        }));
+
+      items.push(...directories);
+
+      // 添加选择当前目录的选项
+      items.push({
+        name: `✅ 选择当前目录: ${currentPath}`,
+        value: { path: currentPath, isDirectory: false }
+      });
+
+    } catch (error) {
+      console.error(chalk.red('读取目录失败:', (error as Error).message));
+      return currentPath;
+    }
+
+    if (items.length === 0) {
+      console.log(chalk.yellow('当前目录没有可访问的子文件夹'));
+      return currentPath;
+    }
+
+    const { selectedItem } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedItem',
+        message: '请选择一个选项:',
+        choices: items,
+        pageSize: Math.min(15, items.length)
+      }
+    ]);
+
+    // 如果选择的是目录，继续浏览
+    if (selectedItem.isDirectory) {
+      currentPath = resolve(selectedItem.path);
+    } else {
+      // 选择当前目录，返回结果
+      return currentPath;
+    }
+  }
+}
 
 program
   .name('watermark')
@@ -30,26 +124,11 @@ program
       // 加载用户配置
       const savedConfig = await loadConfig();
 
-      // 如果没有指定目录或启用交互式模式，通过交互式界面询问
+      // 如果没有指定目录或启用交互式模式，通过文件夹选择器选择
       if (!targetDir || options.interactive) {
-        const answers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'directory',
-            message: '请输入要处理的目录路径:',
-            default: options.directory || process.cwd(),
-            validate: (input: string) => {
-              if (!existsSync(input)) {
-                return '目录不存在，请输入有效路径';
-              }
-              if (!statSync(input).isDirectory()) {
-                return '请输入一个有效的目录路径';
-              }
-              return true;
-            }
-          }
-        ]);
-        targetDir = answers.directory;
+        console.log(chalk.blue('请选择要处理的目录:'));
+        targetDir = await selectDirectory(options.directory || process.cwd());
+        console.log(chalk.green(`✅ 已选择目录: ${targetDir}\n`));
       }
 
       if (!targetDir) {
@@ -214,10 +293,19 @@ program
 program
   .command('list')
   .description('列出指定目录下支持的图片文件')
-  .argument('<directory>', '要扫描的目录路径')
-  .action(async (directory: string) => {
+  .argument('[directory]', '要扫描的目录路径（可选，不提供则使用文件夹选择器）')
+  .action(async (directory?: string) => {
     try {
-      const photos = await scanPhotos(directory);
+      let targetDir = directory;
+      
+      // 如果没有提供目录参数，使用文件夹选择器
+      if (!targetDir) {
+        console.log(chalk.blue('请选择要扫描的目录:'));
+        targetDir = await selectDirectory(process.cwd());
+        console.log(chalk.green(`✅ 已选择目录: ${targetDir}\n`));
+      }
+
+      const photos = await scanPhotos(targetDir!);
 
       if (photos.length === 0) {
         console.log(chalk.yellow('未找到支持的图片文件'));
@@ -226,7 +314,7 @@ program
 
       console.log(chalk.blue(`找到 ${photos.length} 个图片文件:`));
       photos.forEach((photo, index) => {
-        console.log(chalk.gray(`${index + 1}. ${relative(directory, photo)}`));
+        console.log(chalk.gray(`${index + 1}. ${relative(targetDir!, photo)}`));
       });
     } catch (error) {
       console.error(chalk.red('❌ 错误:', (error as Error).message));
