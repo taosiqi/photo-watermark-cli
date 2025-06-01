@@ -16,6 +16,7 @@
 - 🔧 **配置持久化** - 个人设置自动保存
 - 💻 **现代 TypeScript** - 完全类型安全的开发体验
 - 🎪 **交互式界面** - 友好的命令行交互体验
+- 📁 **可视化文件夹选择器** - 无需手动输入路径，交互式浏览文件系统
 
 ## 🚀 快速开始
 
@@ -28,11 +29,14 @@ npm install -g photo-watermark-cli
 ### 基本使用
 
 ```bash
-# 交互式模式（推荐）
+# 交互式模式（推荐）- 使用可视化文件夹选择器
 photo-watermark add
 
 # 命令行模式
 photo-watermark add -d /path/to/photos -o /path/to/output
+
+# 列出目录下的图片（使用文件夹选择器）
+photo-watermark list
 ```
 
 ## 📋 完整使用指南
@@ -40,14 +44,22 @@ photo-watermark add -d /path/to/photos -o /path/to/output
 ### 1. 交互式模式（推荐新手使用）
 
 ```bash
-# 启动交互式界面
+# 启动交互式界面（包含可视化文件夹选择器）
 npm start
 
 # 或者直接运行
 photo-watermark add
 ```
 
-这将启动交互式界面，逐步引导你完成配置。
+这将启动交互式界面，首先显示一个可视化的文件夹选择器，您可以：
+
+- 📁 使用方向键浏览文件夹
+- 🏠 快速跳转到用户主目录
+- 📂 快速跳转到当前工作目录
+- ⬆️ 返回上级目录
+- ✅ 选择当前目录
+
+选择目录后，继续进行水印配置。
 
 ### 2. 命令行模式（推荐高级用户）
 
@@ -64,7 +76,10 @@ photo-watermark add -d /path/to/photos -f "YYYY年MM月DD日 HH:mm"
 # 启用交互式模式
 photo-watermark add -d ./photos -i
 
-# 列出目录下所有支持的图片文件
+# 列出目录下所有支持的图片文件（使用文件夹选择器）
+photo-watermark list
+
+# 或者直接指定目录路径
 photo-watermark list /path/to/photos
 ```
 
@@ -94,6 +109,45 @@ photo-watermark config --reset
 # 显示配置文件路径
 photo-watermark config --path
 ```
+
+## 📁 可视化文件夹选择器
+
+本工具新增了可视化文件夹选择器功能，让您无需手动输入路径即可轻松选择目标文件夹。
+
+### 启动方式
+
+1. **自动启动**：直接运行 `photo-watermark add` 或 `photo-watermark list` 不带参数时自动启动
+2. **交互式模式**：使用 `-i` 参数强制启用交互式模式
+
+### 功能特点
+
+- 🧭 **可视化导航**：使用方向键和回车键浏览文件系统
+- 🏠 **快捷跳转**：一键跳转到用户主目录
+- 📂 **当前目录**：快速返回到当前工作目录
+- ⬆️ **上级目录**：轻松返回上级目录
+- 🔍 **智能过滤**：自动隐藏系统隐藏文件夹
+- 📍 **路径显示**：实时显示当前浏览位置
+
+### 操作说明
+
+```text
+📁 文件夹选择器
+当前位置: /Users/username/Pictures
+使用方向键选择，Enter确认
+
+? 请选择一个选项:
+❯ 📁 .. (返回上级目录)
+  🏠 用户主目录
+  📂 当前工作目录
+  📁 旅行照片2024
+  📁 家庭聚会
+  📁 工作项目
+  ✅ 选择当前目录: /Users/username/Pictures
+```
+
+- **↑↓ 方向键**：浏览选项
+- **Enter**：确认选择
+- **Ctrl+C**：退出程序
 
 ## 🎨 配置选项
 
@@ -144,31 +198,34 @@ photo-watermark config --path
 
 ## 💡 使用场景示例
 
-### 场景 1：旅行照片整理
+### 场景 1：旅行照片整理（推荐使用文件夹选择器）
 
 ```bash
-# 交互式模式：选择在原目录下创建 "watermarked" 文件夹
-photo-watermark add -d ~/Pictures/旅行2024
+# 使用可视化文件夹选择器（推荐）
+photo-watermark add
+# 启动后通过界面选择目标文件夹
 
-# 或者指定自定义输出目录
+# 传统命令行方式
 photo-watermark add -d ~/Pictures/旅行2024 -o ~/Pictures/旅行2024_带水印
 ```
 
-### 场景 2：活动照片批处理
+### 场景 2：快速预览目录下的图片
 
 ```bash
-# 预览效果（不修改文件）
-photo-watermark add -d ./event_photos --dry-run
+# 使用文件夹选择器浏览并查看图片列表
+photo-watermark list
+# 可以轻松切换不同目录进行查看
 
-# 确认无误后执行（会在当前目录创建 watermarked 文件夹）
-photo-watermark add -d ./event_photos -f "YYYY年MM月DD日 HH:mm"
+# 直接指定目录
+photo-watermark list ~/Pictures/活动照片
 ```
 
-### 场景 3：照片存档
+### 场景 3：活动照片批处理
 
 ```bash
-# 交互式模式选择覆盖原文件（请先备份！）
-photo-watermark add -d ./archive_photos
+# 交互式模式：选择在原目录下创建 "watermarked" 文件夹
+photo-watermark add
+# 通过文件夹选择器找到活动照片目录，设置时间格式为 "YYYY年MM月DD日 HH:mm"
 ```
 
 ## ⚠️ 注意事项
@@ -244,7 +301,7 @@ npm run test
 
 ### 项目结构
 
-```
+```text
 ├── src/
 │   ├── types.ts          # TypeScript 类型定义
 │   ├── bin/
@@ -284,6 +341,7 @@ MIT License - 查看 [LICENSE](LICENSE) 文件了解详情。
 ## 📊 项目统计
 
 - 🎯 智能相对大小算法确保水印视觉一致性
+- 📁 可视化文件夹选择器提升用户体验
 - 📦 包大小：~19KB（压缩后）
 - ⚡ 支持所有主流图片格式
 - 🔧 完全类型安全的 TypeScript 实现
