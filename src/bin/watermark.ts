@@ -107,7 +107,7 @@ async function selectDirectory(initialPath?: string): Promise<string> {
 program
   .name('watermark')
   .description('为目录下的所有照片添加时间水印')
-  .version('1.0.2');
+  .version('1.0.3');
 
 program
   .command('add')
