@@ -93,7 +93,7 @@ export function calculateRelativeFontSize(
 
   // 设置最小和最大字体大小限制
   const minFontSize = 12;
-  const maxFontSize = 100;
+  const maxFontSize = 200;
 
   const calculatedSize = Math.round(baseFontSize * scaleFactor);
 

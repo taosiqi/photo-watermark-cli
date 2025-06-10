@@ -207,8 +207,8 @@ program
           message: '字体大小（像素）:',
           default: savedConfig.fontSize,
           validate: (input: number) => {
-            if (input < 12 || input > 50) {
-              return '字体大小必须在 12-50 像素之间';
+            if (input < 12 || input > 200) {
+              return '字体大小必须在 12-200 像素之间';
             }
             return true;
           }
