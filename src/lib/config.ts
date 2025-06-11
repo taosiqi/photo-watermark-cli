@@ -14,7 +14,8 @@ export const DEFAULT_CONFIG: WatermarkConfig = {
   fontSize: 24,
   fontColor: 'white',
   addShadow: true,
-  quality: 95
+  quality: 95,
+  brightness: 1.0  // 默认亮度，1.0为原始亮度
 };
 
 /**

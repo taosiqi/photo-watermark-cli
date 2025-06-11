@@ -134,7 +134,8 @@ export async function addWatermarkToImage(
       fontSize = 24,
       fontColor = 'white',
       addShadow = true,
-      quality = 95
+      quality = 95,
+      brightness = 1.0
     } = config;
 
     // 提取图片拍摄时间
@@ -147,6 +148,16 @@ export async function addWatermarkToImage(
 
     if (!metadata.width || !metadata.height) {
       throw new Error('无法获取图片尺寸');
+    }
+
+    // 创建图像处理管道，首先应用亮度调整
+    let processedImage = image;
+    
+    // 如果亮度不是默认值（1.0），则应用亮度调整
+    if (brightness !== 1.0) {
+      // Sharp 的 modulate 方法中，brightness 值的意义：
+      // 1.0 = 原始亮度，> 1.0 = 增亮，< 1.0 = 变暗
+      processedImage = processedImage.modulate({ brightness });
     }
 
     // 计算文字尺寸（估算）
@@ -192,7 +203,7 @@ export async function addWatermarkToImage(
     `;
 
     // 应用水印，保持原始格式
-    const outputImage = image.composite([{
+    const outputImage = processedImage.composite([{
       input: Buffer.from(textSvg)
     }]);
 
@@ -218,6 +229,154 @@ export async function addWatermarkToImage(
   } catch (error) {
     throw new Error(`处理图片 ${basename(inputPath)} 失败: ${(error as Error).message}`);
   }
+}
+
+/**
+ * 仅调整图片亮度，不添加水印
+ */
+export async function adjustImageBrightness(
+  inputPath: string,
+  outputPath: string,
+  brightness: number = 1.0,
+  quality: number = 95
+): Promise<void> {
+  try {
+    // 获取图片信息
+    const image = sharp(inputPath);
+    const metadata = await image.metadata();
+
+    if (!metadata.width || !metadata.height) {
+      throw new Error('无法获取图片尺寸');
+    }
+
+    // 创建图像处理管道，应用亮度调整
+    let processedImage = image;
+    
+    // 如果亮度不是默认值（1.0），则应用亮度调整
+    if (brightness !== 1.0) {
+      processedImage = processedImage.modulate({ brightness });
+    }
+
+    // 根据原始格式保存
+    const format = metadata.format;
+    switch (format) {
+      case 'jpeg':
+        await processedImage.jpeg({ quality }).toFile(outputPath);
+        break;
+      case 'png':
+        await processedImage.png().toFile(outputPath);
+        break;
+      case 'webp':
+        await processedImage.webp({ quality }).toFile(outputPath);
+        break;
+      case 'tiff':
+        await processedImage.tiff().toFile(outputPath);
+        break;
+      default:
+        await processedImage.jpeg({ quality }).toFile(outputPath);
+    }
+
+  } catch (error) {
+    throw new Error(`调整图片亮度 ${basename(inputPath)} 失败: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * 处理目录下的所有图片，仅调整亮度
+ */
+export async function processBrightnessOnly(options: WatermarkOptions): Promise<ProcessResult> {
+  const {
+    inputDir,
+    outputDir,
+    config,
+    overwrite = false
+  } = options;
+
+  // 扫描所有支持的图片
+  const photos = await scanPhotos(inputDir);
+
+  if (photos.length === 0) {
+    console.log(chalk.yellow('未找到支持的图片文件'));
+    return {
+      success: false,
+      processed: 0,
+      skipped: 0,
+      errors: ['未找到支持的图片文件']
+    };
+  }
+
+  console.log(chalk.blue(`找到 ${photos.length} 张图片`));
+
+  // 显示处理统计信息
+  const processingStats = await getProcessingStats(photos);
+  console.log(chalk.gray(`总大小: ${formatFileSize(processingStats.totalSize)}`));
+  console.log(chalk.gray(`格式分布: ${Object.entries(processingStats.formats).map(([format, count]) => `${format}(${count})`).join(', ')}`));
+
+  // 如果指定了输出目录，创建目录结构
+  if (outputDir) {
+    await fs.mkdir(outputDir, { recursive: true });
+  }
+
+  const spinner = ora('正在调整图片亮度...').start();
+  let processed = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const photo of photos) {
+    try {
+      const relativePath = relative(inputDir, photo);
+      const outputPath = outputDir
+        ? join(outputDir, relativePath)
+        : photo;
+
+      // 如果输出到不同目录，确保目标目录存在
+      if (outputDir) {
+        await fs.mkdir(dirname(outputPath), { recursive: true });
+      }
+
+      // 检查文件是否已存在且不允许覆盖
+      if (!overwrite && outputPath !== photo) {
+        try {
+          await fs.access(outputPath);
+          skipped++;
+          continue;
+        } catch {
+          // 文件不存在，可以继续
+        }
+      }
+
+      await adjustImageBrightness(
+        photo, 
+        outputPath, 
+        config?.brightness || 1.0,
+        config?.quality || 95
+      );
+      processed++;
+
+      spinner.text = `正在调整图片亮度... (${processed}/${photos.length})`;
+
+    } catch (error) {
+      const errorMsg = `${basename(photo)}: ${(error as Error).message}`;
+      errors.push(errorMsg);
+      console.log(`\n${chalk.red('❌')} ${errorMsg}`);
+    }
+  }
+
+  spinner.stop();
+
+  const success = errors.length === 0;
+  console.log(chalk.green(`\n✅ 亮度调整完成！成功: ${processed}, 跳过: ${skipped}, 失败: ${errors.length}`));
+
+  if (outputDir) {
+    console.log(chalk.blue(`输出目录: ${outputDir}`));
+  }
+
+  return {
+    success,
+    processed,
+    skipped,
+    errors
+  };
 }
 
 /**
@@ -291,7 +450,8 @@ export async function processDirectory(options: WatermarkOptions): Promise<Proce
         fontSize: config?.fontSize || 24,
         fontColor: config?.fontColor || 'white',
         addShadow: config?.addShadow !== false,
-        quality: config?.quality || 95
+        quality: config?.quality || 95,
+        brightness: config?.brightness || 1.0
       });
       processed++;
 

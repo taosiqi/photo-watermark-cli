@@ -17,6 +17,7 @@
 - 💻 **现代 TypeScript** - 完全类型安全的开发体验
 - 🎪 **交互式界面** - 友好的命令行交互体验
 - 📁 **可视化文件夹选择器** - 无需手动输入路径，交互式浏览文件系统
+- 🌟 **智能亮度调整** - 专为打印优化，解决打印照片偏暗问题
 
 ## 🚀 快速开始
 
@@ -31,6 +32,9 @@ npm install -g photo-watermark-cli
 ```bash
 # 交互式模式（推荐）- 使用可视化文件夹选择器
 photo-watermark add
+
+# 仅调整照片亮度（专为打印优化）
+photo-watermark brighten
 
 # 命令行模式
 photo-watermark add -d /path/to/photos -o /path/to/output
@@ -73,6 +77,12 @@ photo-watermark add -d /path/to/photos -o /path/to/output
 # 自定义时间格式
 photo-watermark add -d /path/to/photos -f "YYYY年MM月DD日 HH:mm"
 
+# 同时调整亮度和添加水印
+photo-watermark add -d /path/to/photos -b 1.3
+
+# 仅调整照片亮度（专为打印优化）
+photo-watermark brighten -d /path/to/photos -b 1.3
+
 # 启用交互式模式
 photo-watermark add -d ./photos -i
 
@@ -109,6 +119,36 @@ photo-watermark config --reset
 # 显示配置文件路径
 photo-watermark config --path
 ```
+
+### 4. 亮度调整功能（专为打印优化）
+
+本工具新增了专门的亮度调整功能，解决照片打印时偏暗的问题：
+
+```bash
+# 使用交互式模式调整亮度
+photo-watermark brighten
+
+# 命令行模式调整亮度
+photo-watermark brighten -d /path/to/photos -b 1.3
+
+# 覆盖原文件（请先备份）
+photo-watermark brighten -d /path/to/photos -b 1.3 --overwrite
+```
+
+#### 推荐亮度值
+
+- **打印用途**: 1.2-1.5 (解决打印偏暗)
+- **屏幕显示偏暗**: 1.3-1.6
+- **轻微增亮**: 1.1-1.2
+- **显著增亮**: 1.5-2.0
+
+#### 功能特点
+
+- 🖨️ **打印优化**: 专门解决照片打印时偏暗的问题
+- 🎯 **智能处理**: 基于 Sharp 库的高质量图像处理
+- 📁 **灵活输出**: 可选择创建新文件夹或覆盖原文件
+- 🔧 **质量控制**: 可调整输出图片质量
+- 🚀 **高效批处理**: 支持大量照片的快速处理
 
 ## 📁 可视化文件夹选择器
 
@@ -176,6 +216,7 @@ photo-watermark config --path
 - **字体颜色**: 白色、黑色、红色、蓝色、绿色、黄色
 - **文字阴影**: 增强复杂背景下的可读性
 - **图片质量**: 1-100，控制输出文件质量
+- **照片亮度**: 0.1-3.0，1.0 为原始亮度，大于 1.0 增亮（专为解决打印偏暗问题）
 
 ## 🔧 智能相对大小算法
 
@@ -228,6 +269,20 @@ photo-watermark add
 # 通过文件夹选择器找到活动照片目录，设置时间格式为 "YYYY年MM月DD日 HH:mm"
 ```
 
+### 场景 4：照片打印前亮度优化
+
+```bash
+# 专门为打印优化亮度（推荐）
+photo-watermark brighten
+# 通过交互式界面选择目录，设置亮度为 1.3
+
+# 命令行快速处理
+photo-watermark brighten -d ~/Pictures/待打印 -b 1.3
+
+# 同时调整亮度和添加水印
+photo-watermark add -d ~/Pictures/照片 -b 1.2
+```
+
 ## ⚠️ 注意事项
 
 1. **备份重要照片**：建议在处理重要照片前先做备份
@@ -267,6 +322,7 @@ photo-watermark --help
 
 # 查看特定命令帮助
 photo-watermark add --help
+photo-watermark brighten --help
 photo-watermark list --help
 photo-watermark config --help
 ```

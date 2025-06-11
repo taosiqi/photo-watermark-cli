@@ -5,6 +5,7 @@ export interface WatermarkConfig {
   fontColor: string;
   addShadow: boolean;
   quality: number;
+  brightness: number;  // 亮度调整值，范围 0.1-2.0，1.0为原始亮度
 }
 
 export interface ImageInfo {
@@ -27,6 +28,7 @@ export interface CLIOptions {
   input?: string;
   output?: string;
   format?: string;
+  brightness?: number;
   overwrite?: boolean;
   interactive?: boolean;
 }

@@ -6,7 +6,7 @@ import { resolve, relative } from 'path';
 import { existsSync, statSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
-import { processDirectory } from '../lib/watermark';
+import { processDirectory, processBrightnessOnly } from '../lib/watermark';
 import { loadConfig, saveConfig, resetConfig, getConfigPath } from '../lib/config';
 import { scanPhotos } from '../lib/scanner';
 import chalk from 'chalk';
@@ -144,6 +144,7 @@ program
   .option('-d, --directory <path>', '指定要处理的目录路径')
   .option('-o, --output <path>', '指定输出目录路径（可选）')
   .option('-f, --format <format>', '时间格式（默认：YYYY-MM-DD HH:mm:ss）')
+  .option('-b, --brightness <value>', '照片亮度调整（0.1-3.0，1.0为原始亮度）', parseFloat)
   .option('--overwrite', '覆盖已存在的文件')
   .option('-i, --interactive', '使用交互式模式')
   .action(async (options: CLIOptions) => {
@@ -246,6 +247,18 @@ program
           }
         },
         {
+          type: 'number',
+          name: 'brightness',
+          message: '照片亮度调整 (0.5-3.0，1.0为原始亮度，大于1.0增亮):',
+          default: options.brightness || savedConfig.brightness,
+          validate: (input: number) => {
+            if (input < 0.1 || input > 3.0) {
+              return '亮度值必须在 0.1-3.0 之间';
+            }
+            return true;
+          }
+        },
+        {
           type: 'confirm',
           name: 'saveAsDefault',
           message: '保存这些设置为默认配置?',
@@ -272,7 +285,8 @@ program
           fontSize: config.fontSize,
           fontColor: config.fontColor,
           addShadow: config.addShadow,
-          quality: config.quality
+          quality: config.quality,
+          brightness: config.brightness
         };
         await saveConfig(configToSave);
         console.log(chalk.green('✅ 配置已保存'));
@@ -296,7 +310,8 @@ program
           fontSize: config.fontSize,
           fontColor: config.fontColor,
           addShadow: config.addShadow,
-          quality: config.quality
+          quality: config.quality,
+          brightness: config.brightness
         },
         overwrite: options.overwrite || config.outputMode === 'overwrite'
       };
@@ -392,7 +407,127 @@ program
       console.log(chalk.gray('字体颜色:'), config.fontColor);
       console.log(chalk.gray('文字阴影:'), config.addShadow ? '是' : '否');
       console.log(chalk.gray('图片质量:'), config.quality + '%');
+      console.log(chalk.gray('照片亮度:'), config.brightness + 'x');
       console.log(chalk.gray('配置文件:'), getConfigPath());
+
+    } catch (error) {
+      console.error(chalk.red('❌ 错误:', (error as Error).message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('brighten')
+  .description('调整照片亮度（专为打印优化）')
+  .option('-d, --directory <path>', '指定要处理的目录路径')
+  .option('-o, --output <path>', '指定输出目录路径（可选）')
+  .option('-b, --brightness <value>', '亮度调整值（0.1-3.0，1.0为原始亮度，建议1.2-1.5）', parseFloat)
+  .option('--overwrite', '覆盖已存在的文件')
+  .option('-i, --interactive', '使用交互式模式')
+  .action(async (options: CLIOptions) => {
+    try {
+      let targetDir = options.directory;
+
+      // 如果没有指定目录或启用交互式模式，通过文件夹选择器选择
+      if (!targetDir || options.interactive) {
+        console.log(chalk.blue('请选择要处理的目录:'));
+        targetDir = await selectDirectory(options.directory || process.cwd());
+        console.log(chalk.green(`✅ 已选择目录: ${targetDir}\n`));
+      }
+
+      if (!targetDir) {
+        console.error(chalk.red('❌ 错误: 必须指定目录路径'));
+        process.exit(1);
+      }
+
+      // 亮度调整配置
+      const brightnessConfig = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'outputMode',
+          message: '选择输出方式:',
+          choices: [
+            { name: '在原目录下创建 "brightened" 文件夹（推荐）', value: 'subfolder' },
+            { name: '覆盖原文件（请先备份！）', value: 'overwrite' }
+          ],
+          default: 'subfolder'
+        },
+        {
+          type: 'number',
+          name: 'brightness',
+          message: '亮度调整值 (打印建议1.2-1.5，屏幕显示偏暗建议1.3-1.6):',
+          default: options.brightness || 1.3,
+          validate: (input: number) => {
+            if (input < 0.1 || input > 3.0) {
+              return '亮度值必须在 0.1-3.0 之间';
+            }
+            return true;
+          }
+        },
+        {
+          type: 'number',
+          name: 'quality',
+          message: '图片质量 (1-100):',
+          default: 95,
+          validate: (input: number) => {
+            if (input < 1 || input > 100) {
+              return '图片质量必须在 1-100 之间';
+            }
+            return true;
+          }
+        },
+        {
+          type: 'confirm',
+          name: 'proceed',
+          message: '确认开始调整亮度?',
+          default: true
+        }
+      ]);
+
+      if (!brightnessConfig.proceed) {
+        console.log(chalk.yellow('操作已取消'));
+        return;
+      }
+
+      // 根据用户选择确定输出目录
+      let outputDir: string | undefined;
+      if (brightnessConfig.outputMode === 'subfolder') {
+        outputDir = resolve(targetDir, 'brightened');
+      } else if (options.output) {
+        outputDir = resolve(options.output);
+      }
+
+      // 使用专门的亮度调整函数
+      const watermarkOptions: WatermarkOptions = {
+        inputDir: resolve(targetDir),
+        outputDir: outputDir,
+        config: {
+          timeFormat: '',  // 不添加水印时时间格式不重要
+          position: 'bottom-left',
+          fontSize: 0,
+          fontColor: 'white',
+          addShadow: false,
+          quality: brightnessConfig.quality,
+          brightness: brightnessConfig.brightness
+        },
+        overwrite: options.overwrite || brightnessConfig.outputMode === 'overwrite'
+      };
+
+      console.log(chalk.blue('开始调整照片亮度...'));
+      const result = await processBrightnessOnly(watermarkOptions);
+      
+      if (result.success) {
+        console.log(chalk.green('✅ 亮度调整完成！'));
+        console.log(chalk.blue(`亮度已调整为原始亮度的 ${brightnessConfig.brightness}x`));
+        if (outputDir) {
+          console.log(chalk.blue(`输出目录: ${outputDir}`));
+        }
+      } else {
+        console.log(chalk.yellow(`⚠️ 处理完成，但有 ${result.errors.length} 个错误`));
+        result.errors.forEach(error => {
+          console.log(chalk.red(`  • ${error}`));
+        });
+      }
 
     } catch (error) {
       console.error(chalk.red('❌ 错误:', (error as Error).message));
